@@ -1,0 +1,57 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>CLRC — Mapa Mestre SVG</title>
+<style>
+:root{--bg:#07111f;--panel:#0e1c2f;--line:#203a56;--text:#e7f1ff;--muted:#93abc5;--accent:#2dd4bf}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,Arial,sans-serif}.shell{display:grid;grid-template-columns:260px 1fr;min-height:100vh}.side{background:#091725;border-right:1px solid var(--line);padding:18px;display:flex;flex-direction:column;gap:14px}.side h1{font-size:18px;margin:0}.side p{font-size:12px;color:var(--muted);line-height:1.45}.group{border-top:1px solid var(--line);padding-top:12px}.group h3{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}button,select{width:100%;background:#10243a;color:var(--text);border:1px solid #264764;border-radius:9px;padding:9px 10px;margin:4px 0;cursor:pointer}button.active{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent) inset}.main{display:flex;flex-direction:column;min-width:0}.top{height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;border-bottom:1px solid var(--line);background:#091725}.top b{font-size:15px}.top span{font-size:12px;color:var(--muted)}.canvas-wrap{padding:14px;flex:1}.canvas{position:relative;width:100%;height:calc(100vh - 92px);background:#e9ecef;border-radius:14px;overflow:hidden;border:1px solid #29465f}.base,.cad{position:absolute;inset:0;width:100%;height:100%;object-fit:contain}.cad{opacity:.15;pointer-events:none}.overlay{position:absolute;inset:0;width:100%;height:100%}.legend{position:absolute;right:16px;top:16px;background:rgba(7,17,31,.92);border:1px solid var(--line);border-radius:12px;padding:10px;font-size:12px}.legend div{margin:5px 0}.dot{display:inline-block;width:10px;height:10px;border-radius:50%;margin-right:6px}.hint{position:absolute;left:16px;bottom:16px;background:rgba(7,17,31,.92);border:1px solid var(--line);border-radius:10px;padding:9px 11px;font-size:12px;color:var(--muted)}.range{width:100%}
+@media(max-width:900px){.shell{grid-template-columns:1fr}.side{display:none}.canvas{height:calc(100vh - 85px)}}
+</style>
+</head>
+<body>
+<div class="shell">
+<aside class="side">
+  <div><h1>CLRC · Mapa Mestre</h1><p>Planta geral + base SVG de mapeamento de câmeras. Pontos adicionados ficam salvos no navegador.</p></div>
+  <div class="group"><h3>Mapa</h3>
+    <select id="baseSelect"><option value="planta">Planta geral atualizada</option><option value="aerea">Visão aérea</option></select>
+    <label style="font-size:12px;color:var(--muted)">Opacidade SVG CAD</label><input id="cadOpacity" class="range" type="range" min="0" max="100" value="12">
+  </div>
+  <div class="group"><h3>Adicionar</h3>
+    <button data-tool="ap">📡 Access Point</button><button data-tool="camera">📷 Câmera</button><button data-tool="alarm">🚨 Alarme</button><button data-tool="rack">🗄 Rack</button><button data-tool="switch">🔀 Switch</button><button data-tool="onu">🌐 ONU</button>
+  </div>
+  <div class="group"><h3>Fibra</h3><button data-tool="fiber">━ Traçar fibra</button><button id="finishFiber">Concluir fibra</button></div>
+  <div class="group"><h3>Ações</h3><button id="clear">Limpar pontos</button><button id="export">Exportar JSON</button><a href="index.html"><button>Voltar ao projeto completo</button></a></div>
+</aside>
+<main class="main"><header class="top"><div><b>Centro Logístico Rio Claro</b><br><span>Mapa mestre unificado</span></div><span id="status">Selecione uma ferramenta</span></header>
+<div class="canvas-wrap"><div class="canvas" id="canvas">
+  <img class="base" id="base" src="assets/maps/planta-geral-clrc-atualizada.png" alt="Planta geral CLRC">
+  <img class="cad" id="cad" src="assets/maps/mapeamento-cameras-clrc.svg" alt="Base SVG CAD">
+  <svg class="overlay" id="overlay" viewBox="0 0 1000 544" preserveAspectRatio="none"></svg>
+  <div class="legend"><div><i class="dot" style="background:#22d3ee"></i>AP</div><div><i class="dot" style="background:#a78bfa"></i>Câmera</div><div><i class="dot" style="background:#fb7185"></i>Alarme</div><div><i class="dot" style="background:#f59e0b"></i>Rack</div><div><i class="dot" style="background:#34d399"></i>Switch</div><div><i class="dot" style="background:#38bdf8"></i>ONU</div></div>
+  <div class="hint">Clique no mapa para posicionar. Arraste um ponto para ajustar.</div>
+</div></div></main>
+</div>
+<script>
+const NS='http://www.w3.org/2000/svg',store='CLRC_MASTER_HTML_V1';
+const colors={ap:'#22d3ee',camera:'#a78bfa',alarm:'#fb7185',rack:'#f59e0b',switch:'#34d399',onu:'#38bdf8'};
+const icons={ap:'AP',camera:'CAM',alarm:'ALM',rack:'R',switch:'SW',onu:'ONU'};
+let db=JSON.parse(localStorage.getItem(store)||'{"items":[],"fibers":[]}'),tool=null,draft=[],drag=null;
+const svg=document.getElementById('overlay'),status=document.getElementById('status');
+function save(){localStorage.setItem(store,JSON.stringify(db))}
+function el(tag,a={}){const n=document.createElementNS(NS,tag);for(const[k,v]of Object.entries(a))n.setAttribute(k,v);return n}
+function redraw(){svg.replaceChildren();db.fibers.forEach(f=>{const p=el('polyline',{points:f.map(q=>q.x+','+q.y).join(' '),fill:'none',stroke:'#38bdf8','stroke-width':'3','stroke-dasharray':'8 5'});svg.append(p)});if(draft.length){svg.append(el('polyline',{points:draft.map(q=>q.x+','+q.y).join(' '),fill:'none',stroke:'#f59e0b','stroke-width':'3'}))}
+ db.items.forEach(it=>{const g=el('g',{'data-id':it.id,style:'cursor:move'});const c=el('circle',{cx:it.x,cy:it.y,r:it.type==='ap'?10:8,fill:colors[it.type],stroke:'#fff','stroke-width':'2'});g.append(c);const t=el('text',{x:it.x+12,y:it.y+4,fill:'#fff','font-size':'11','font-weight':'700',style:'paint-order:stroke;stroke:#07111f;stroke-width:3px'});t.textContent=icons[it.type]+'-'+it.id.slice(-2);g.append(t);if(it.type==='ap')g.insertBefore(el('circle',{cx:it.x,cy:it.y,r:36,fill:'none',stroke:colors.ap,'stroke-width':'1','stroke-opacity':'.45'}),c);if(it.type==='camera'){const path=el('path',{d:`M ${it.x} ${it.y} L ${it.x+48} ${it.y-22} L ${it.x+48} ${it.y+22} Z`,fill:colors.camera,'fill-opacity':'.16',stroke:colors.camera,'stroke-width':'1'});g.insertBefore(path,c)}svg.append(g)})}
+function point(e){const r=svg.getBoundingClientRect();return{x:(e.clientX-r.left)/r.width*1000,y:(e.clientY-r.top)/r.height*544}}
+document.querySelectorAll('[data-tool]').forEach(b=>b.onclick=()=>{tool=b.dataset.tool;document.querySelectorAll('[data-tool]').forEach(x=>x.classList.toggle('active',x===b));status.textContent=tool==='fiber'?'Clique nos vértices da fibra':'Clique no mapa para adicionar '+tool});
+svg.addEventListener('pointerdown',e=>{const g=e.target.closest('[data-id]');if(g){drag=g.dataset.id;svg.setPointerCapture(e.pointerId);return}const p=point(e);if(tool==='fiber'){draft.push(p);redraw();return}if(tool&&colors[tool]){db.items.push({id:Date.now().toString(36),type:tool,x:p.x,y:p.y});save();redraw()}});
+svg.addEventListener('pointermove',e=>{if(!drag)return;const p=point(e),it=db.items.find(x=>x.id===drag);if(it){it.x=p.x;it.y=p.y;redraw()}});svg.addEventListener('pointerup',e=>{if(drag){drag=null;save();if(svg.hasPointerCapture(e.pointerId))svg.releasePointerCapture(e.pointerId)}});
+document.getElementById('finishFiber').onclick=()=>{if(draft.length>1){db.fibers.push(draft);draft=[];save();redraw()}};
+document.getElementById('clear').onclick=()=>{if(confirm('Limpar todos os pontos e fibras deste mapa?')){db={items:[],fibers:[]};save();redraw()}};
+document.getElementById('export').onclick=()=>{const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(db,null,2)],{type:'application/json'}));a.download='CLRC_mapa_mestre.json';a.click()};
+document.getElementById('cadOpacity').oninput=e=>document.getElementById('cad').style.opacity=e.target.value/100;
+document.getElementById('baseSelect').onchange=e=>document.getElementById('base').src=e.target.value==='aerea'?'assets/maps/centro-logistico-rio-claro-campus.png':'assets/maps/planta-geral-clrc-atualizada.png';
+redraw();
+</script>
+</body></html>

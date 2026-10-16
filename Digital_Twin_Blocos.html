@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Centro Logístico Rio Claro - Digital Twin Infra</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body data-scenario="asis">
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand"><div class="brand-mark">CL</div><div class="brand-copy"><b>RIO CLARO</b><span>Infraestrutura · Digital Twin</span></div></div>
+      <nav id="side-nav" class="side-nav"></nav>
+      <div class="sidebar-foot"><small>Projeto técnico visual<br>Rev. 1.5 · SVG + Mapas</small><a href="mapa-mestre-clrc.html">Abrir Mapa Mestre SVG ↗</a><a href="assets/docs/Rio_Claro_CCTV_Project_Scope_Cameras.pdf" target="_blank">Abrir PDF CFTV original ↗</a></div>
+    </aside>
+    <div id="sidebar-backdrop" class="sidebar-backdrop"></div>
+    <main class="main-shell">
+      <header class="topbar">
+        <div class="top-title"><button id="mobile-nav-toggle" class="mobile-nav-toggle">☰</button><div><b>GTO Infrastructure Control</b><span> · Centro Logístico Rio Claro</span></div></div>
+        <div class="scenario-switch" aria-label="Alternar cenário"><button class="active" data-scenario="ASIS">CENÁRIO ATUAL</button><button data-scenario="TOBE">CENÁRIO PROPOSTO</button></div>
+      </header>
+      <div id="app-content" class="content"></div>
+    </main>
+  </div>
+  <dialog id="image-dialog"><div class="dialog-head"><h3>Fonte visual</h3><button id="dialog-close">Fechar ✕</button></div><div class="dialog-img-wrap"><img alt="Fonte ampliada"></div></dialog>
+  <script src="js/data.js"></script>
+  <script src="js/bloco-a-plans.js"></script>
+  <script src="js/bloco-b-plans.js"></script>
+  <script src="js/bloco-c-plans.js"></script>
+  <script src="js/bloco-d-plans.js"></script>
+  <script src="js/bloco-e-plans.js"></script>
+  <script src="js/bloco-f-plans.js"></script>
+  <script src="js/bloco-g-plans.js"></script>
+  <script src="js/bloco-h-plans.js"></script>
+  <script src="js/wifi-plans.js"></script>
+  <script src="js/map.js"></script>
+  <script src="js/wifi.js"></script>
+  <script src="js/cftv-coordinates.js"></script>
+  <script src="js/cftv-map.js"></script>
+  <script src="js/cftv.js"></script>
+  <script src="js/topology.js"></script>
+  <script src="js/digital-twin.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
